@@ -1,6 +1,5 @@
 -- This is NOT made by me.
 library = {}
-do 
 	local Workspace = game:GetService("Workspace")
 	local UserInputService = game:GetService("UserInputService")
 	local Players = game:GetService("Players")
@@ -7069,5 +7068,4 @@ do
 
 		return Page
 	end
-end
 return library
