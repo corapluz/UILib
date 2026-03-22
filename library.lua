@@ -1,5 +1,6 @@
 -- This is NOT made by me.
-local Library do 
+library = {}
+do 
 	local Workspace = game:GetService("Workspace")
 	local UserInputService = game:GetService("UserInputService")
 	local Players = game:GetService("Players")
