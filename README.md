@@ -7,7 +7,7 @@ A clean, dark-themed Roblox UI library with smooth animations, theming support, 
 ## Getting Started
 
 ```lua
-local Library = loadstring(game:HttpGet("YOUR_RAW_URL"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/corapluz/UILib/refs/heads/main/library.lua"))()
 
 local Window = Library:Window({
     Name    = "My Script",
@@ -271,7 +271,7 @@ Library:Unload()  -- destroys all GUI, disconnects all connections
 ## Full Example
 
 ```lua
-local Library = loadstring(game:HttpGet("YOUR_URL"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/corapluz/UILib/refs/heads/main/library.lua"))()
 
 local Window = Library:Window({ Name = "MyHub", SubName = "v1.0", Logo = "0" })
 
