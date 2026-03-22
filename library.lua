@@ -7069,4 +7069,5 @@ local library do
 		return Page
 	end
 end
-return library
+getgenv().Library = Library
+return Library
