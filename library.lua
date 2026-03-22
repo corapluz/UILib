@@ -4594,11 +4594,18 @@ local library do
 						SettingsItem["Settings"].Instance.Parent = Library.Holder.Instance
 
 						RenderStepped = RunService.RenderStepped:Connect(function()
-							SettingsItem["Settings"].Instance.Position = UDim2New(
-								0, Items["Toggle"].Instance.AbsolutePosition.X + Items["Toggle"].Instance.AbsoluteSize.X / 1.9 + 15, 
-								0, Items["Toggle"].Instance.AbsolutePosition.Y + Items["Toggle"].Instance.AbsoluteSize.Y + Size / 1.9)
-							SettingsItem["Settings"].Instance.Size = UDim2New(0, 245, 0, Size)
-						end)
+    local rdPos  = Items["RealDropdown"].Instance.AbsolutePosition
+    local rdSize = Items["RealDropdown"].Instance.AbsoluteSize
+
+    Items["OptionHolder"].Instance.Position = UDim2New(
+        0, rdPos.X + rdSize.X - Dropdown.Size,  -- sağ kenara hizala
+        0, rdPos.Y + rdSize.Y + 5
+    )
+    Items["OptionHolder"].Instance.Size = UDim2New(
+        0, Dropdown.Size,
+        0, Dropdown.OptionHolderSize
+    )
+end)
 
 						for Index, Value in Library.OpenFrames do 
 							if Value ~= Settings then 
