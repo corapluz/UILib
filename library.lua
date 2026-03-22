@@ -2295,7 +2295,7 @@ local Library do
 					})                    
 				end
 
-				Items["MainFrame"]:MakeResizeable(Vector2New(Items["MainFrame"].Instance.AbsoluteSize.X, Items["MainFrame"].Instance.AbsoluteSize.Y), Vector2New(9999, 9999), OriginalSizes)
+				Items["MainFrame"]:MakeResizeable(Vector2New(Items["MainFrame"].Instance.AbsoluteSize.X, Items["MainFrame"].Instance.AbsoluteSize.Y), Vector2New(9999, 9999), nil)
 				Library:MakeBlurred(Items["MainFrame"], Window)
 
 				Items["LeftTabs"] = Instances:Create("Frame", {
@@ -7069,4 +7069,3 @@ local Library do
 		return Page
 	end
 end
-return Library
