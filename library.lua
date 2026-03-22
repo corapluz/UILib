@@ -5456,10 +5456,9 @@ Library.Sections.Dropdown = function(self, Data)
 			disconnectRender()
 			RenderStepped = RunService.RenderStepped:Connect(function()
 				Items["OptionHolder"].Instance.Position = UDim2New(
-					0, Items["RealDropdown"].Instance.AbsolutePosition.X,
-					0, Items["RealDropdown"].Instance.AbsolutePosition.Y
-					   + Items["RealDropdown"].Instance.AbsoluteSize.Y + 5
-				)
+    0, Items["RealDropdown"].Instance.AbsolutePosition.X + Items["RealDropdown"].Instance.AbsoluteSize.X - Dropdown.Size,
+    0, Items["RealDropdown"].Instance.AbsolutePosition.Y + Items["RealDropdown"].Instance.AbsoluteSize.Y + 5
+)
 				Items["OptionHolder"].Instance.Size = UDim2New(
 					0, Items["RealDropdown"].Instance.AbsoluteSize.X,
 					0, Dropdown.OptionHolderSize
