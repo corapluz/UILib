@@ -507,6 +507,7 @@ Library:ChangeTheme("Accent", Color3.fromRGB(255, 100, 0))
 ## Full Example
 
 ```lua
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/corapluz/UILib/refs/heads/main/library.lua"))()
 -- Keybind list (pass to settings page)
 local KeybindList = Library:KeybindList("Active Keybinds")
 
