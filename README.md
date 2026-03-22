@@ -1,13 +1,11 @@
-# Lyapos UI Library — Documentation
-
-A clean, dark-themed Roblox UI library with smooth animations, theming support, and config saving.
+# UI Library — Documentation
 
 ---
 
 ## Getting Started
 
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/corapluz/UILib/refs/heads/main/library.lua"))()
+local Library = loadstring(game:HttpGet("YOUR_RAW_URL"))()
 
 local Window = Library:Window({
     Name    = "My Script",
@@ -17,6 +15,8 @@ local Window = Library:Window({
 ```
 
 > ⚠️ Always write your UI code **after** the `loadstring(...)()` call.
+
+> ⚠️ Always call `Window:Init()` **after** all your pages and sections are defined, otherwise elements will be stuck off-screen to the right.
 
 ---
 
@@ -271,7 +271,7 @@ Library:Unload()  -- destroys all GUI, disconnects all connections
 ## Full Example
 
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/corapluz/UILib/refs/heads/main/library.lua"))()
+local Library = loadstring(game:HttpGet("YOUR_URL"))()
 
 local Window = Library:Window({ Name = "MyHub", SubName = "v1.0", Logo = "0" })
 
@@ -295,4 +295,6 @@ Section:Dropdown({
     Items = {"Head","Torso"}, Default = "Head",
     Callback = function(v) print("Bone:", v) end
 })
+
+Window:Init() -- ⚠️ always call this last!
 ```
