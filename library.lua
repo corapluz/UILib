@@ -1,4 +1,3 @@
--- This is NOT made by me.
 local library do
 	local Workspace = game:GetService("Workspace")
 	local UserInputService = game:GetService("UserInputService")
@@ -479,6 +478,11 @@ local library do
 			local StartSize = nil
 
 			local EdgeThickness = 2
+			local CornerSize = 14
+			local CornerRadius = 4
+			local CornerIdleTransparency = 0.35
+			local CornerHoverTransparency = 0.15
+			local CornerActiveTransparency = 0
 
 			local MakeEdge = function(Name, Position, Size)
 				local Button = Instances:Create("TextButton", {
@@ -497,6 +501,84 @@ local library do
 				return Button
 			end
 
+			local MakeCorner = function()
+				local Button = Instances:Create("TextButton", {
+					Name = "\0",
+					Size = UDim2New(0, CornerSize, 0, CornerSize),
+					Position = UDim2New(1, -CornerSize, 1, -CornerSize),
+					AnchorPoint = Vector2New(0, 0),
+					BackgroundColor3 = FromRGB(27, 25, 29),
+					BackgroundTransparency = 1,
+					Text = "",
+					BorderSizePixel = 0,
+					AutoButtonColor = false,
+					Parent = Gui,
+					ZIndex = 99999,
+					ClipsDescendants = true,
+				})  Button:AddToTheme({BackgroundColor3 = "Element"})
+
+				Instances:Create("UICorner", {
+					Parent = Button.Instance,
+					Name = "\0",
+					CornerRadius = UDimNew(0, CornerRadius)
+				})
+
+				local CornerStrokeMask = Instances:Create("Frame", {
+					Parent = Button.Instance,
+					Name = "\0",
+					BackgroundTransparency = 1,
+					Size = UDim2New(0, CornerSize, 0, CornerSize),
+					Position = UDim2New(1, -CornerSize, 1, -CornerSize),
+					AnchorPoint = Vector2New(0, 0),
+					BorderSizePixel = 0,
+					ClipsDescendants = true
+				})
+
+				local CornerStrokeFrame = Instances:Create("Frame", {
+					Parent = CornerStrokeMask.Instance,
+					Name = "\0",
+					BackgroundTransparency = 1,
+					Size = UDim2New(0, CornerSize * 2, 0, CornerSize * 2),
+					Position = UDim2New(1, -CornerSize * 2, 1, -CornerSize * 2),
+					AnchorPoint = Vector2New(0, 0),
+					BorderSizePixel = 0
+				})
+
+				Instances:Create("UICorner", {
+					Parent = CornerStrokeFrame.Instance,
+					Name = "\0",
+					CornerRadius = UDimNew(0, CornerRadius)
+				})
+
+				local CornerStroke = Instances:Create("UIStroke", {
+					Parent = CornerStrokeFrame.Instance,
+					Name = "\0",
+					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+					Thickness = 1.5,
+					Transparency = CornerIdleTransparency,
+					Color = FromRGB(255, 255, 255)
+				})
+				CornerStroke:AddToTheme({Color = "Accent"})
+
+				Instances:Create("UIGradient", {
+					Parent = CornerStrokeFrame.Instance,
+					Name = "\0",
+					Enabled = true,
+					Rotation = 135,
+					Color = RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, FromRGB(143, 143, 143))},
+					Transparency = NumSequence{
+						NumSequenceKeypoint(0, 1),
+						NumSequenceKeypoint(0.5, 0.6),
+						NumSequenceKeypoint(1, 0)
+					}
+				}):AddToTheme({Color = function()
+					return RGBSequence{RGBSequenceKeypoint(0, Library.Theme.Accent), RGBSequenceKeypoint(1, Library.Theme.AccentGradient)}
+				end})
+
+				return Button, CornerStroke
+			end
+
+			local CornerButton, CornerStroke
 			local Edges = {
 				{Button = MakeEdge(
 					"Left", 
@@ -526,6 +608,9 @@ local library do
 				},
 			}
 
+			CornerButton, CornerStroke = MakeCorner()
+			TableInsert(Edges, {Button = CornerButton, Stroke = CornerStroke, Side = "BR"})
+
 			local BeginResizing = function(Side)
 				Resizing = true 
 				CurrentSide = Side 
@@ -537,7 +622,14 @@ local library do
 				StartSize = Vector2New(Gui.Size.X.Offset, Gui.Size.Y.Offset)
 
 				for Index, Value in Edges do 
-					Value.Button:Tween(nil, {BackgroundTransparency = (Value.Side == Side) and 0 or 1})
+					if Value.Stroke then
+						Value.Stroke:Tween(
+							TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+							{Transparency = (Value.Side == Side) and CornerActiveTransparency or CornerIdleTransparency}
+						)
+					else
+						Value.Button:Tween(nil, {BackgroundTransparency = (Value.Side == Side) and 0 or 1})
+					end
 				end
 			end
 
@@ -546,20 +638,50 @@ local library do
 				CurrentSide = nil
 
 				for Index, Value in Edges do 
-					Value.Button.Instance.BackgroundTransparency = 1
+					if Value.Stroke then
+						Value.Stroke.Instance.Transparency = CornerIdleTransparency
+					else
+						Value.Button.Instance.BackgroundTransparency = 1
+					end
 				end
 			end
 
 			for Index, Value in Edges do 
 				Value.Button:Connect("InputBegan", function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 						BeginResizing(Value.Side)
 					end
 				end)
 			end
 
+			CornerButton:OnHover(function()
+				if Resizing and CurrentSide == "BR" then
+					return
+				end
+				CornerStroke:Tween(TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = CornerHoverTransparency})
+			end)
+
+			CornerButton:OnHoverLeave(function()
+				if Resizing and CurrentSide == "BR" then
+					return
+				end
+				CornerStroke:Tween(TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = CornerIdleTransparency})
+			end)
+
+			CornerButton:Connect("InputBegan", function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+					CornerStroke:Tween(TweenInfo.new(0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = CornerActiveTransparency})
+				end
+			end)
+
+			CornerButton:Connect("InputEnded", function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+					CornerStroke:Tween(TweenInfo.new(0.16, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = CornerIdleTransparency})
+				end
+			end)
+
 			Library:Connect(UserInputService.InputEnded, function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 					if Resizing then
 						EndResizing()
 					end
@@ -602,6 +724,14 @@ local library do
 					h = StartSize.Y + dy
 
 					if Window then
+						Window.Bottom.X = w
+					end
+				elseif CurrentSide == "BR" then
+					w = StartSize.X + dx
+					h = StartSize.Y + dy
+
+					if Window then
+						Window.Right.Y = h
 						Window.Bottom.X = w
 					end
 				end
@@ -1025,8 +1155,8 @@ local library do
 					Part:Tween(nil, {Transparency = 0.97})
 					Part:Tween(nil, {Size = Vector3New(1, 1, 1) * 0.01})
 
-					local Corner0 = BlurItem.AbsolutePosition;
-					local Corner1 = Corner0 + BlurItem.AbsoluteSize;
+					local Corner0 = BlurItem.AbsolutePosition
+					local Corner1 = Corner0 + BlurItem.AbsoluteSize
 
 					local Ray0 = Camera.ScreenPointToRay(Camera, Corner0.X, Corner0.Y, 1);
 					local Ray1 = Camera.ScreenPointToRay(Camera, Corner1.X, Corner1.Y, 1);
@@ -1043,22 +1173,25 @@ local library do
 
 					local Size = Position1 - Position0
 					local Center = (Position0 + Position1) / 2
+					local Padding = Vector3New(-0.008, -0.008, 0)
+					local PaddedSize = Size + Padding
+					if PaddedSize.X < 0 or PaddedSize.Y < 0 then
+						PaddedSize = Size
+					end
 
 					BlockMesh.Instance.Offset = Center
-					BlockMesh.Instance.Scale  = Size / 0.0101
+					BlockMesh.Instance.Scale  = PaddedSize / 0.0101
 
 					Part.Instance.CFrame = Camera.CFrame
 				else
 					DepthOfField:Tween(nil, {NearIntensity = 0})
 
-					--Part:Tween(nil, {Transparency = 1})
 					BlockMesh.Instance.Offset = Vector3New(0, 0, 0)
 					BlockMesh.Instance.Scale  = Vector3New(0, 0, 0)
 				end
 			else
 				DepthOfField:Tween(nil, {NearIntensity = 0})
 
-				--Part:Tween(nil, {Transparency = 1})
 				BlockMesh.Instance.Offset = Vector3New(0, 0, 0)
 				BlockMesh.Instance.Scale  = Vector3New(0, 0, 0)
 			end
@@ -1590,7 +1723,6 @@ local library do
 					end)
 
 					if Data.Section.IsSettings ~= true then
-						--print("sus")
 						for Index, Value in Library.OpenFrames do 
 							if Value ~= Colorpicker then
 								Value:SetOpen(false)
@@ -1601,7 +1733,6 @@ local library do
 					Library.OpenFrames[Colorpicker] = Colorpicker 
 				else
 					if not Data.Section.IsSettings then
-						--print("sus2")
 						if Library.OpenFrames[Colorpicker] then 
 							Library.OpenFrames[Colorpicker] = nil
 						end
@@ -1738,7 +1869,6 @@ local library do
 			end)
 
 			function AddColor(Color)
-				--if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 				local SaveIndex = #Colorpicker.SavedColors + 1
 
 				local SavedColor = Instances:Create("TextButton", {
@@ -1791,7 +1921,6 @@ local library do
 				end)
 
 				SavedColor:Tween(nil, {BackgroundTransparency = 0})
-				--end
 			end
 
 			local Colors = {
@@ -1823,7 +1952,7 @@ local library do
 			AddColor(Colors["Green"])
 			AddColor(Colors["Blue"])
 			AddColor(Colors["Maroon"])
-			AddColor(Colors["Whiteish Pink"]) -- had to do it in order
+			AddColor(Colors["Whiteish Pink"])
 			AddColor(Colors["White"])
 			AddColor(Colors["Red"])
 			AddColor(Colors["Sky Blue"])
@@ -3216,7 +3345,7 @@ local library do
 						BackgroundColor3 = FromRGB(255, 255, 255),
 						AnchorPoint = Vector2New(0.5, 0.5),
 						Position = UDim2New(0.5, 0, 0.5, 0)
-					})  --SettingsItems["Accent"]:AddToTheme({BackgroundColor3 = "Accent"})
+					})
 
 					SettingsItems["Gradient"] = Instances:Create("UIGradient", {
 						Parent = SettingsItems["Accent"].Instance,
@@ -3460,138 +3589,6 @@ local library do
 				end)
 			end
 
-            --[[
-            function Window:GetClosestFrame(Position, Instances)
-                local ClosestRadius = math.huge
-                local ClosestFrame
-
-                local String = {"Items.LeftTabs", "Items.RightTabs", "Items.BottomTabs", "Items.TopTabs"}
-
-                for Index, Value in (Instances or {Items.LeftTabs.Instance, Items.RightTabs.Instance, Items.BottomTabs.Instance, Items.TopTabs.Instance}) do
-                    local Magnitude = (Vector2New(Value.AbsolutePosition.X, Value.AbsolutePosition.Y) - Position).Magnitude
-                    if Magnitude < ClosestRadius then
-                        ClosestFrame = String[Index]:gsub("Items.", "")
-                        ClosestRadius = Magnitude
-                    end
-                end 
-
-                return ClosestFrame
-            end 
-
-            function Window:UpdateTabs(CurrentAlignment)
-                if CurrentAlignment == "TopTabs" or CurrentAlignment == "BottomTabs" then
-                    for Index, Value in Window.Pages do 
-                        Value.Items.Inactive.Instance.Parent = Items[CurrentAlignment].Instance
-                        Value.Items.Inactive.Instance.Size = UDim2New(0, 70, 0, 60)
-                        Value.Items.Text.Instance.Position = UDim2New(0.5, 0, 1, -2)
-                        Value.Items.Text.Instance.AnchorPoint = Vector2New(0.5, 1)
-                        Value.Items.Icon.Instance.AnchorPoint = Vector2New(0.5, 0.5)
-                        Value.Items.Gradient.Instance.Rotation = -90
-                        
-                        if Value.Active then 
-                            Value.Items.Icon.Instance.Size = UDim2New(0, 32, 0, 32)
-                            Value.Items.Icon.Instance.Position = UDim2New(0.5, 0, 0.5, 0)
-                            Value.Items.Text.Instance.TextTransparency = 1
-                        else
-                            Value.Items.Icon.Instance.Size = UDim2New(0, 24, 0, 24)
-                            Value.Items.Icon.Instance.Position = UDim2New(0.5, 0, 0.5, -8)
-                            Value.Items.Text.Instance.TextTransparency = 0
-                        end
-                    end
-                elseif CurrentAlignment == "LeftTabs" or CurrentAlignment == "RightTabs" then
-                    for Index, Value in Window.Pages do
-                        Value.Items.Inactive.Instance.Parent = Items[CurrentAlignment].Instance
-                        Value.Items.Inactive.Instance.Size = UDim2New(0, 200, 0, 40)
-
-                        Value.Items.Text.Instance.Position = UDim2New(45, 0, 0.5, 0)
-                        Value.Items.Text.Instance.AnchorPoint = Vector2New(0, 0.5)
-
-                        Value.Items.Icon.Instance.AnchorPoint = Vector2New(0, 0.5)
-                        Value.Items.Icon.Instance.Position = UDim2New(16, 0, 0.5, 0)
-                        Value.Items.Icon.Instance.Size = UDim2New(0, 18, 0, 18)
-
-                        Value.Items.Gradient.Instance.Rotation = 0
-                    end
-                        
-                end
-            end
-
-            function Window:UpdateFrameSide(OldFrame, NewFrame)
-                OldFrame.Instance.Visible = false 
-                NewFrame.Instance.Visible = true
-                Window:UpdateTabs(Window.CurrentAlignment)
-            end
-
-            function Window:UpdateHighlight(CurrentFrame, Bool)
-                if Bool then
-                    CurrentFrame.Instance.Visible = false 
-                    Items["PagePlaceholder"].Instance.Visible = true
-                else
-                    CurrentFrame.Instance.Visible = true 
-                    Items["PagePlaceholder"].Instance.Visible = false
-                end
-            end
-
-            for Index, Value in {"Left", "Top", "Bottom", "Right"} do 
-                local TabDragging = false
-                local TabItem = Items[Value.."Tabs"]
-                local SelectedParent
-
-                TabItem:Connect("InputBegan", function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then 
-                        TabItem.Instance.Parent = Library.Holder.Instance
-                        Window:UpdateHighlight(TabItem, true)
-                        Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 0.3})
-                        TabDragging = true 
-                    end
-                end)
-
-                TabItem:Connect("InputEnded", function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        TabDragging = false
-
-                        if SelectedParent then
-                            Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 1})
-                            Window:UpdateHighlight(TabItem, false)
-                            Window:UpdateFrameSide(TabItem, Items[SelectedParent])
-                            Window.CurrentAlignment = SelectedParent
-                        end
-                    end                    
-                end)
-
-                Library:Connect(UserInputService.InputChanged, function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseMovement and TabDragging then 
-                        SelectedParent = Window:GetClosestFrame(Vector2New(Input.Position.X, Input.Position.Y - 36))
-                        local TargetSize
-                        local TargetPosition
-                        local TargetAnchorPoint
-
-                        if SelectedParent == "LeftTabs" then
-                            TargetSize = UDim2New(0, 225, 1, 0)
-                            TargetPosition = UDim2New(0, 0, 0, 0)
-                            TargetAnchorPoint = Vector2New(1, 0)
-                        elseif SelectedParent == "RightTabs" then
-                            TargetSize = UDim2New(0, 225, 1, 0)
-                            TargetPosition = UDim2New(1, 0, 0, 0)
-                            TargetAnchorPoint = Vector2New(0, 0)
-                        elseif SelectedParent == "TopTabs" then
-                            TargetSize = UDim2New(1, 0, 0, 80)
-                            TargetPosition = UDim2New(0, 0, 0, 0)
-                            TargetAnchorPoint = Vector2New(0, 1)
-                        elseif SelectedParent == "BottomTabs" then
-                            TargetSize = UDim2New(1, 0, 0, 90)
-                            TargetPosition = UDim2New(0, 0, 1, 0)
-                            TargetAnchorPoint = Vector2New(0, 0)
-                        end
-                        
-                        Items["PagePlaceholder"].Instance.AnchorPoint = TargetAnchorPoint
-                        Items["PagePlaceholder"]:Tween(TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = TargetSize})
-                        Items["PagePlaceholder"]:Tween(TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = TargetPosition})
-                    end
-                end)
-            end
-            --]]
-
 			function Window:Init()
 				for __, Value in Window.Pages do 
 					if Value.Active then 
@@ -3603,12 +3600,6 @@ local library do
 					end
 				end
 			end
-
-            --[[Library:Connect(UserInputService.InputBegan, function(Input)
-                if tostring(Input.KeyCode) == Library.MenuKeybind or tostring(Input.UserInputType) == Library.MenuKeybind then
-                    Window:SetOpen(not Window.IsOpen)
-                end
-            end)]]
 
 			Window:SetCenter()
 			task.wait()
@@ -3696,7 +3687,7 @@ local library do
 					ZIndex = 2,
 					BorderSizePixel = 0,
 					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  --Items["Icon"]:AddToTheme({ImageColor3 = "Accent"})
+				})
 
 				Instances:Create("UIGradient", {
 					Parent = Items["Icon"].Instance,
@@ -3932,7 +3923,7 @@ local library do
 					ZIndex = 2,
 					BorderSizePixel = 0,
 					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  --Items["Icon"]:AddToTheme({ImageColor3 = "Accent"})
+				})
 
 				Instances:Create("UIGradient", {
 					Parent = Items["Icon"].Instance,
@@ -3997,7 +3988,7 @@ local library do
 					ZIndex = 2,
 					BorderSizePixel = 0,
 					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  --Items["Toggle"]:AddToTheme({BackgroundColor3 = "Accent"})
+				})
 
 				Items["Circle"] = Instances:Create("Frame", {
 					Parent = Items["Toggle"].Instance,
@@ -4320,7 +4311,7 @@ local library do
 					BackgroundColor3 = FromRGB(255, 255, 255),
 					AnchorPoint = Vector2New(0.5, 0.5),
 					Position = UDim2New(0.5, 0, 0.5, 0)
-				})  --Items["Accent"]:AddToTheme({BackgroundColor3 = "Accent"})
+				})
 
 				Instances:Create("UICorner", {
 					Parent = Items["Accent"].Instance,
@@ -4384,8 +4375,6 @@ local library do
 			Items["Indicator"].Instance.Position = UDim2New(0, 60, 0, 0)
 			Items["Text"].Instance.Position = UDim2New(0, 84, 0, 0)
 
-			--Toggle.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Toggle.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
-
 			function Toggle:Get()
 				return Toggle.Value 
 			end
@@ -4397,13 +4386,9 @@ local library do
 				if Toggle.Value then 
 					Items["Accent"]:Tween(TweenInfo.new(Library.Tween.Time + 0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0, Size = UDim2New(1, 0, 1, 0)})
 					Items["CheckImage"]:Tween(nil, {ImageTransparency = 0, Size = UDim2New(0, 10, 0, 9)})
-
-					--Items["Gradient"].Instance.Enabled = true 
 				else
 					Items["Accent"]:Tween(TweenInfo.new(Library.Tween.Time + 0.05, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1, Size = UDim2New(0, 0, 0, 0)})
 					Items["CheckImage"]:Tween(nil, {ImageTransparency = 1, Size = UDim2New(0, 0, 0, 0)})
-
-					--Items["Gradient"].Instance.Enabled = false
 				end
 
 				if Toggle.Callback then 
@@ -4518,7 +4503,7 @@ local library do
 						BackgroundColor3 = FromRGB(255, 255, 255),
 						AnchorPoint = Vector2New(0.5, 0.5),
 						Position = UDim2New(0.5, 0, 0.5, 0)
-					})  --SettingsItem["Accent"]:AddToTheme({BackgroundColor3 = "Accent"})
+					})
 
 					SettingsItem["Gradient"] = Instances:Create("UIGradient", {
 						Parent = SettingsItem["Accent"].Instance,
@@ -4598,7 +4583,7 @@ local library do
     local rdSize = Items["RealDropdown"].Instance.AbsoluteSize
 
     Items["OptionHolder"].Instance.Position = UDim2New(
-        0, rdPos.X + rdSize.X - Dropdown.Size,  -- sağ kenara hizala
+        0, rdPos.X + rdSize.X - Dropdown.Size,
         0, rdPos.Y + rdSize.Y + 5
     )
     Items["OptionHolder"].Instance.Size = UDim2New(
@@ -4817,7 +4802,7 @@ end)
 					BackgroundColor3 = FromRGB(255, 255, 255),
 					AnchorPoint = Vector2New(0.5, 0.5),
 					Position = UDim2New(0.5, 0, 0.5, 0)
-				})  --Items["Accent"]:AddToTheme({BackgroundColor3 = "Accent"})
+				})
 
 				Items["Gradient"] = Instances:Create("UIGradient", {
 					Parent = Items["Accent"].Instance,
@@ -4886,8 +4871,6 @@ end)
 					Items["Accent"]:Tween(TweenInfo.new(Library.Tween.Time + 0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2New(0, 0, 0, 0), BackgroundTransparency = 1})
 				end)
 			end 
-
-			--Button.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Button.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
 
 			function Button:SetVisibility(Bool)
 				Items["Button"].Instance.Visible = Bool
@@ -5003,7 +4986,7 @@ end)
 					ZIndex = 2,
 					BorderSizePixel = 0,
 					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  --Items["Accent"]:AddToTheme({BackgroundColor3 = "Accent"})
+				})
 
 				Instances:Create("UICorner", {
 					Parent = Items["Accent"].Instance,
@@ -5099,9 +5082,6 @@ end)
 				end)
 			end
 
-			--Slider.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Slider.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
-
-			--Items["Value"].Instance.TextTransparency = 1
 			Items["RealSlider"].Instance.Position = UDim2New(0, 80, 1, -3)
 			Items["Text"].Instance.Position = UDim2New(0, 80, 0, 0)
 
@@ -5117,11 +5097,9 @@ end)
 				if Bool then 
 					Items["RealSlider"]:Tween(TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2New(0, 20, 1, -3)})
 					Items["Text"]:Tween(TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2New(0, 0, 0, 0)})
-					-- Items["Value"].Instance.TextTransparency = 0.3
 				else
 					Items["RealSlider"].Instance.Position = UDim2New(0, 80, 1, -3)
 					Items["Text"].Instance.Position = UDim2New(0, 80, 0, 0)
-					-- Items["Value"].Instance.TextTransparency = 1
 				end
 			end
 
@@ -5200,12 +5178,6 @@ end)
 			return Slider 
 		end
 
-		-- ============================================================
---  FIXED: Library.Sections.Dropdown
---  Drop-in replacement for the original dropdown block.
---  Changes are marked with -- [FIX]
--- ============================================================
-
 Library.Sections.Dropdown = function(self, Data)
 	Data = Data or { }
 
@@ -5229,7 +5201,6 @@ Library.Sections.Dropdown = function(self, Data)
 		IsOpen  = false
 	}
 
-	-- [FIX 1] Debounce declared properly in the correct scope
 	local Debounce = false
 
 	local Items = { } do
@@ -5391,12 +5362,9 @@ Library.Sections.Dropdown = function(self, Data)
 		})
 	end
 
-	-- slide-in başlangıç pozisyonları
 	Items["Text"].Instance.Position         = UDim2New(0, 30, 0.5, 0)
 	Items["RealDropdown"].Instance.Position = UDim2New(1, 30, 0, 0)
 
-	-- [FIX 4] RenderStepped bağlantısı tek bir değişkende tutuluyor,
-	--         SetOpen her çağrıldığında önce eski bağlantı koparılıyor.
 	local RenderStepped = nil
 
 	local function disconnectRender()
@@ -5406,7 +5374,6 @@ Library.Sections.Dropdown = function(self, Data)
 		end
 	end
 
-	-- ----------------------------------------------------------------
 	function Dropdown:Get()
 		return Dropdown.Value
 	end
@@ -5437,9 +5404,7 @@ Library.Sections.Dropdown = function(self, Data)
 		Items["Gradient"].Instance.Enabled = false
 	end)
 
-	-- ----------------------------------------------------------------
 	function Dropdown:SetOpen(Bool)
-		-- [FIX 1] Debounce artik bu scope'da tanimli, dogru calisir
 		if Debounce then return end
 		Debounce = true
 
@@ -5459,7 +5424,6 @@ Library.Sections.Dropdown = function(self, Data)
 				end
 			end)
 
-			-- [FIX 4] Önce eski bağlantıyı kopar, sonra yenisini kur
 			disconnectRender()
 			RenderStepped = RunService.RenderStepped:Connect(function()
 				Items["OptionHolder"].Instance.Position = UDim2New(
@@ -5481,22 +5445,17 @@ Library.Sections.Dropdown = function(self, Data)
 			Library.OpenFrames[Dropdown] = Dropdown
 
 		else
-			-- [FIX 2 & 3] "if not Dropdown.IsOpen" kontrolü kaldırıldı,
-			--             zaten false olduğu için hep giriyordu — direkt çalıştır.
 			for _, Value in Dropdown.OptionsWithIndexes do
 				task.spawn(function() Value:RefreshPosition(false) end)
 			end
 
 			Library.OpenFrames[Dropdown] = nil
-
-			-- [FIX 4] Kapat tarafında da disconnect
 			disconnectRender()
 
 			Items["ArrowIcon"]:Tween(nil, {Rotation = 0, ImageColor3 = FromRGB(141, 141, 150)})
 			Items["Gradient"].Instance.Enabled = false
 		end
 
-		-- Fade animasyonu
 		local Descendants = Items["OptionHolder"].Instance:GetDescendants()
 		TableInsert(Descendants, Items["OptionHolder"].Instance)
 
@@ -5530,7 +5489,6 @@ Library.Sections.Dropdown = function(self, Data)
 		end)
 	end
 
-	-- ----------------------------------------------------------------
 	function Dropdown:Set(Option)
 		if Dropdown.Multi then
 			if type(Option) ~= "table" then return end
@@ -5569,7 +5527,6 @@ Library.Sections.Dropdown = function(self, Data)
 		end
 	end
 
-	-- ----------------------------------------------------------------
 	function Dropdown:Add(Option)
 		local OptionButton = Instances:Create("TextButton", {
 			Parent = Items["Holder"].Instance,
@@ -5621,7 +5578,6 @@ Library.Sections.Dropdown = function(self, Data)
 			AnchorPoint = Vector2New(0, 0.5),
 			BorderSizePixel = 0,
 			BackgroundTransparency = 1,
-			-- [FIX 2] Başlangıç pozisyonu tutarlı: dropdown kapalıyken hep offset'li başlar
 			Position = UDim2New(0, 30, 0.5, 0),
 			BorderColor3 = FromRGB(0, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.X,
@@ -5649,7 +5605,6 @@ Library.Sections.Dropdown = function(self, Data)
 
 		function OptionData:RefreshPosition(Bool)
 			if Bool then
-				-- Dropdown açılıyor: selected ise accent+text birlikte kaydır
 				if OptionData.Selected then
 					OptionAccent:Tween(TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2New(0, 0, 0.5, 0)})
 					OptionText:Tween(TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),   {Position = UDim2New(0, 15, 0.5, 0)})
@@ -5657,7 +5612,6 @@ Library.Sections.Dropdown = function(self, Data)
 					OptionText:Tween(TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),   {Position = UDim2New(0, 0, 0.5, 0)})
 				end
 			else
-				-- [FIX 2] Dropdown kapanıyor: tutarlı başlangıç pozisyonuna sıfırla
 				if OptionData.Selected then
 					OptionAccent.Instance.Position = UDim2New(0, 30, 0.5, 0)
 					OptionText.Instance.Position   = UDim2New(0, 45, 0.5, 0)
@@ -5724,17 +5678,14 @@ Library.Sections.Dropdown = function(self, Data)
 		Dropdown.Options[OptionData.Name] = OptionData
 		Dropdown.OptionsWithIndexes[#Dropdown.OptionsWithIndexes + 1] = OptionData
 
-		-- [FIX 2] Add sonrası başlangıç pozisyonu hemen set et (tutarlılık)
 		OptionData:RefreshPosition(false)
 
 		return OptionData
 	end
 
-	-- ----------------------------------------------------------------
 	function Dropdown:Remove(Option)
 		if not Dropdown.Options[Option] then return end
 
-		-- [FIX 2] OptionsWithIndexes listesinden de temizle, index kaymasını önle
 		for i, v in Dropdown.OptionsWithIndexes do
 			if v.Name == Option then
 				TableRemove(Dropdown.OptionsWithIndexes, i)
@@ -5755,7 +5706,6 @@ Library.Sections.Dropdown = function(self, Data)
 		end
 	end
 
-	-- ----------------------------------------------------------------
 	Items["RealDropdown"]:Connect("MouseButton1Down", function()
 		Dropdown:SetOpen(not Dropdown.IsOpen)
 	end)
@@ -5780,7 +5730,6 @@ Library.Sections.Dropdown = function(self, Data)
 		end
 	end)
 
-	-- ----------------------------------------------------------------
 	for _, Value in Dropdown.Items do
 		Dropdown:Add(Value)
 	end
@@ -5837,7 +5786,6 @@ end
 				})  Items["Text"]:AddToTheme({TextColor3 = "Text"})          
 			end
 
-			--Label.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Label.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
 
 			function Label:SetText(Text)
 				Text = tostring(Text)
@@ -5913,8 +5861,6 @@ end
 						PaddingLeft = UDimNew(0, 6)
 					})                
 				end
-
-				--Label.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Label.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
 
 				local NewColorpicker, ColorpickerItems = Library:CreateColorpicker({
 					Parent = Items["SubElements"],
@@ -6061,7 +6007,7 @@ end
 					BorderSizePixel = 0,
 					BackgroundTransparency = 0,
 					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  --Items["Background"]:AddToTheme({BackgroundColor3 = "Accent"})
+				})
 
 				Instances:Create("UICorner", {
 					Parent = Items["Background"].Instance,
@@ -6120,8 +6066,6 @@ end
 				end})     
 			end
 
-			--Keybind.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Keybind.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
-
 			local KeyListItem 
 
 			if Library.KeyList then 
@@ -6147,7 +6091,7 @@ end
 				end
 			end
 
-			function Keybind:SetMode(Mode) -- hard coded
+			function Keybind:SetMode(Mode)
 				if Mode == "Toggle" then
 					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0, 0, 0, 0), Size = UDim2New(0.5, 0, 1, 0)})
 					Items["Toggle"]:ChangeItemTheme({TextColor3 = function()
@@ -6266,8 +6210,6 @@ end
 
 					Update()
 				end
-
-				--Items["KeyButton"].Instance.Position = UDim2New(0, Data.Text.Instance.TextBounds.X + 12, 0, 0)
 				Keybind.Picking = false
 			end
 
@@ -6513,7 +6455,6 @@ end
 		end
 
 		Library.Sections.Listbox = function(self, Data)
-			-- basically just dropdowns so i jsut copied dropdowns
 			Data = Data or { }
 
 			local Dropdown = {
@@ -6744,7 +6685,7 @@ end
 					Size = UDim2New(0, 6, 0, 6),
 					BorderSizePixel = 0,
 					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  --OptionAccent:AddToTheme({BackgroundColor3 = "Accent"})
+				})
 
 				Instances:Create("UIGradient", {
 					Parent = OptionAccent.Instance,
