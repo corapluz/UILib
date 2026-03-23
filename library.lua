@@ -6055,7 +6055,7 @@ end
 				Items["Background"] = Instances:Create("Frame", {
 					Parent = Items["Modes"].Instance,
 					Name = "\0",
-					Size = UDim2New(0.35, 0, 1, 0),
+					Size = UDim2New(0.5, 0, 1, 0),
 					BorderColor3 = FromRGB(0, 0, 0),
 					ZIndex = 2,
 					BorderSizePixel = 0,
@@ -6149,7 +6149,7 @@ end
 
 			function Keybind:SetMode(Mode) -- hard coded
 				if Mode == "Toggle" then
-					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0, 0, 0, 0), Size = UDim2New(0.35, 0, 1, 0)})
+					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0, 0, 0, 0), Size = UDim2New(0.5, 0, 1, 0)})
 					Items["Toggle"]:ChangeItemTheme({TextColor3 = function()
 						return FromRGB(0, 0, 0)
 					end})
@@ -6160,7 +6160,7 @@ end
 					end})
 					Items["Hold"]:Tween(nil, {TextColor3 = Library.Theme.Text})
 				elseif Mode == "Hold" then
-					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0.35, 0, 0, 0), Size = UDim2New(0.35, 0, 1, 0)})
+					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0.5, 0, 0, 0), Size = UDim2New(0.5, 0, 1, 0)})
 
 					Items["Toggle"]:ChangeItemTheme({TextColor3 = function()
 						return Library.Theme.Text
