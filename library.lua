@@ -6117,28 +6117,7 @@ end
 					BackgroundColor3 = FromRGB(255, 255, 255)
 				})  Items["Hold"]:AddToTheme({TextColor3 = function()
 					return Library.Theme.Text
-				end})        
-
-				Items["Always"] = Instances:Create("TextButton", {
-					Parent = Items["Modes"].Instance,
-					Name = "\0",
-					FontFace = Library.Font,
-					TextColor3 = FromRGB(240, 240, 240),
-					TextTransparency = 0.20000000298023224,
-					Text = "Always",
-					BorderColor3 = FromRGB(0, 0, 0),
-					AutoButtonColor = false,
-					AnchorPoint = Vector2New(0, 0),
-					Size = UDim2New(0.4, 0, 1, 0),
-					BackgroundTransparency = 1,
-					Position = UDim2New(0.7, -12, 0, -1),
-					BorderSizePixel = 0,
-					ZIndex = 2,
-					TextSize = 14,
-					BackgroundColor3 = FromRGB(255, 255, 255)
-				})  Items["Always"]:AddToTheme({TextColor3 = function()
-					return Library.Theme.Text
-				end})              
+				end})     
 			end
 
 			--Keybind.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Keybind.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
@@ -6180,11 +6159,6 @@ end
 						return Library.Theme.Text
 					end})
 					Items["Hold"]:Tween(nil, {TextColor3 = Library.Theme.Text})
-
-					Items["Always"]:ChangeItemTheme({TextColor3 = function()
-						return Library.Theme.Text
-					end})
-					Items["Always"]:Tween(nil, {TextColor3 = Library.Theme.Text})
 				elseif Mode == "Hold" then
 					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0.35, 0, 0, 0), Size = UDim2New(0.35, 0, 1, 0)})
 
@@ -6197,28 +6171,6 @@ end
 						return FromRGB(0, 0, 0)
 					end})
 					Items["Hold"]:Tween(nil, {TextColor3 = FromRGB(0, 0, 0)})
-
-					Items["Always"]:ChangeItemTheme({TextColor3 = function()
-						return Library.Theme.Text
-					end})
-					Items["Always"]:Tween(nil, {TextColor3 = Library.Theme.Text})
-				elseif Mode == "Always" then
-					Items["Background"]:Tween(TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0.7, 0, 0, 0), Size = UDim2New(0.3, 0, 1, 0)})
-
-					Items["Toggle"]:ChangeItemTheme({TextColor3 = function()
-						return Library.Theme.Text
-					end})
-					Items["Toggle"]:Tween(nil, {TextColor3 = Library.Theme.Text})
-
-					Items["Hold"]:ChangeItemTheme({TextColor3 = function()
-						return Library.Theme.Text
-					end})
-					Items["Hold"]:Tween(nil, {TextColor3 = Library.Theme.Text})
-
-					Items["Always"]:ChangeItemTheme({TextColor3 = function()
-						return FromRGB(0, 0, 0)
-					end})
-					Items["Always"]:Tween(nil, {TextColor3 = FromRGB(0, 0, 0)})
 				end
 
 				Library.Flags[Keybind.Flag] = {
@@ -6237,8 +6189,6 @@ end
 					Keybind.Toggled = not Keybind.Toggled
 				elseif Keybind.ModeSelected == "Hold" then 
 					Keybind.Toggled = Bool
-				elseif Keybind.ModeSelected == "Always" then 
-					Keybind.Toggled = true
 				end
 
 				Library.Flags[Keybind.Flag] = {
@@ -6366,15 +6316,11 @@ end
 						Keybind:Press()
 					elseif Keybind.ModeSelected == "Hold" then 
 						Keybind:Press(true)
-					elseif Keybind.ModeSelected == "Always" then 
-						Keybind:Press(true)
 					end
 				elseif tostring(Input.UserInputType) == Keybind.Key then
 					if Keybind.ModeSelected == "Toggle" then 
 						Keybind:Press()
 					elseif Keybind.ModeSelected == "Hold" then 
-						Keybind:Press(true)
-					elseif Keybind.ModeSelected == "Always" then 
 						Keybind:Press(true)
 					end
 				end
@@ -6400,14 +6346,10 @@ end
 				if tostring(Input.KeyCode) == Keybind.Key then
 					if Keybind.ModeSelected == "Hold" then 
 						Keybind:Press(false)
-					elseif Keybind.ModeSelected == "Always" then 
-						Keybind:Press(true)
 					end
 				elseif tostring(Input.UserInputType) == Keybind.Key then
 					if Keybind.ModeSelected == "Hold" then 
 						Keybind:Press(false)
-					elseif Keybind.ModeSelected == "Always" then 
-						Keybind:Press(true)
 					end
 				end
 			end)
@@ -6420,11 +6362,6 @@ end
 			Items["Hold"]:Connect("MouseButton1Down", function()
 				Keybind.ModeSelected = "Hold"
 				Keybind:SetMode("Hold")
-			end)
-
-			Items["Always"]:Connect("MouseButton1Down", function()
-				Keybind.ModeSelected = "Always"
-				Keybind:SetMode("Always")
 			end)
 
 			if Keybind.Default then 
