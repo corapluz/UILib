@@ -6040,7 +6040,7 @@ end
 					BorderColor3 = FromRGB(0, 0, 0),
 					AnchorPoint = Vector2New(1, 0),
 					Position = UDim2New(1, 0, 0, 0),
-					Size = UDim2New(0, 140, 0, 25),
+					Size = UDim2New(0, 200, 0, 25),
 					ZIndex = 2,
 					BorderSizePixel = 0,
 					BackgroundColor3 = FromRGB(27, 26, 29)
