@@ -6256,7 +6256,7 @@ end
 					end
 
 					Update()
-				elseif TableFind({"Toggle", "Hold", "Always"}, Key) then
+				elseif TableFind({"Toggle", "Hold"}, Key) then
 					Keybind.ModeSelected = Key
 					Keybind:SetMode(Key)
 
