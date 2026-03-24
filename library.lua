@@ -71,9 +71,9 @@ local library do
 		FadeSpeed = 0.2,
 
 		Folders = {
-			Directory = "lyapossss",
-			Configs = "lyapossss/Configs",
-			Assets = "lyapossss/Assets",
+			Directory = "Coraaa",
+			Configs = "Coraaa/Configs",
+			Assets = "Coraaa/Assets",
 		},
 
 		-- Ignore below
